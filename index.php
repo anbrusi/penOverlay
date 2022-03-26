@@ -40,31 +40,43 @@ class penOverlay {
         $wrapped = '';
         $wrapped .= '<!--penOverlay-->';
         $wrapped .= '<div id="penov-main">';
-        $wrapped .= '<div id="penow-raw">';
+        $wrapped .= '<div id="penov-raw">';
         $wrapped .= $html;
         $wrapped .= '</div>'; // penow-raw
-        $wrapped .= '<canvas></canvas>';
+        $wrapped .= '<canvas id="penov-canvas"></canvas>';
         $wrapped .= '</div>'; // penov-main
         return $wrapped;
     }
     private function correctionView():string {
         $html = '';
+        $html .= '<div id="penov-parent">';
         if (isset($_POST['files'])) {
             $rawContent = file_get_contents('testFiles/'.$_POST['files']);
-            if (strpos(trim($rawContent), '<!--penOverlay-->') == 0) {
+            if (strpos(trim($rawContent), '<!--penOverlay-->') === 0) {
                 $html .= $rawContent;
             } else {
                 $html .= $this->wrap($rawContent);
             }
         }
+        $html .= '</div>'; // penov-parent
+
+        // Load PenOverlay. NOTE: did not work, if inserted after the form
+        $params = array('parentid' => 'penov-parent');
+        $jsonParams = json_encode($params);
+        $html .= '<script type="module">';
+        $html .=    'import {attachPenOverlay} from "./isJS/modularJS/penOverlay.js";';
+        $html .=    'attachPenOverlay(\''.$jsonParams.'\');';
+        $html .= '</script>';
+        
+        // Button form
         $html .= '<form action="http://myProjects/penOverlay/index.php" method="POST">';
-        $html .= '<p>';
-        $html .= '<input type="submit" name="escape" value="Escape">';
-        $html .= '&nbsp;&nbsp;';
-        $html .= '<input type="submit" name="penov-store" value="Store">';
-        $html .= '</p>';
-        // Save the loaded filename for future use
-        $html .= '<input type="hidden" name="file" value="'.$_POST['files'];
+            $html .= '<p>';
+            $html .= '<input type="submit" name="escape" value="Escape">';
+            $html .= '&nbsp;&nbsp;';
+            $html .= '<input type="submit" name="penov-store" value="Store">';
+            $html .= '</p>';
+            // Save the loaded filename for future use
+            $html .= '<input type="hidden" name="file" value="'.$_POST['files'];
         $html .= '</form>';
         return $html;
     }
