@@ -43,7 +43,7 @@ class penOverlay {
         $wrapped .= '<div id="penov-raw">';
         $wrapped .= $html;
         $wrapped .= '</div>'; // penow-raw
-        $wrapped .= '<canvas id="penov-canvas"></canvas>';
+        $wrapped .= '<canvas id="penov-canvas" data-penov=""></canvas>';
         $wrapped .= '</div>'; // penov-main
         return $wrapped;
     }
