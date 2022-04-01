@@ -31,7 +31,7 @@ class penOverlay {
         return $html;
     }
     /**
-     * Wraps the HTML document, which should be annotated by pen in a stanard way
+     * Wraps the HTML document, which should be annotated by pen in a standard way
      * 
      * @param string $html the raw document, which will be annotated or prepared for annotation 
      * @return string 
@@ -45,10 +45,26 @@ class penOverlay {
         $wrapped .= '</div>'; // penow-raw
         $wrapped .= '<canvas id="penov-canvas" data-penov=""></canvas>';
         $wrapped .= '</div>'; // penov-main
+        $wrapped .= '<!--/penOverlay-->';
         return $wrapped;
+    }
+    private function buttons():string {
+        $html = '';
+        $html .= '<p>';
+        $html .= '<input type="submit" name="escape" value="Escape">';
+        $html .= '&nbsp;&nbsp;';
+        $html .= '<input type="submit" name="penov-store" value="Store">';
+        $html .= '</p>';
+        return $html;
     }
     private function correctionView():string {
         $html = '';
+        $html .= '<h2>This is just part of the wrap and is not active</h2>';
+        $html .= '<form action="http://myProjects/penOverlay/index.php" method="POST">';
+        $html .= $this->buttons();
+
+        // div (penov-parent) holding the document to be corrected. The document itself is $rawContent
+        // It must be wrapped for processing by JS. If it is not wrapped, it is wrapped here
         $html .= '<div id="penov-parent">';
         if (isset($_POST['files'])) {
             $rawContent = file_get_contents('testFiles/'.$_POST['files']);
@@ -66,17 +82,11 @@ class penOverlay {
         $html .= '<script type="module">';
         $html .=    'import {attachPenOverlay} from "./isJS/modularJS/penOverlay.js";';
         $html .=    'attachPenOverlay(\''.$jsonParams.'\');';
-        $html .= '</script>';
+        $html .= '</script>';        
         
-        // Button form
-        $html .= '<form action="http://myProjects/penOverlay/index.php" method="POST">';
-            $html .= '<p>';
-            $html .= '<input type="submit" name="escape" value="Escape">';
-            $html .= '&nbsp;&nbsp;';
-            $html .= '<input type="submit" name="penov-store" value="Store">';
-            $html .= '</p>';
-            // Save the loaded filename for future use
-            $html .= '<input type="hidden" name="file" value="'.$_POST['files'];
+        // Save the loaded filename for future use
+        $html .= '<input type="hidden" name="file" value="'.$_POST['files'].'">';
+        $html .= $this->buttons();
         $html .= '</form>';
         return $html;
     }
@@ -86,7 +96,16 @@ class penOverlay {
         if (isset($_POST['load'])) {
             $html .= $this->correctionView();
         } elseif (isset($_POST['penov-store'])) {
-            $html .= $this->loadView();
+            if (isset($_POST['penov-document'])) {
+                // Store the document
+                $path = 'testFiles/'.$_POST['file'];
+                $document = $_POST['penov-document'];
+                file_put_contents($path, $document);
+                $html .= $this->loadView();
+            } else {
+                $html .= '<div>There is no penov-document</div>';
+                $html.= $this->loadView();
+            }
         } else {
             $html .= $this->loadView();
         }

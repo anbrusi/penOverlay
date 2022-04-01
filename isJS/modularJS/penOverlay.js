@@ -132,6 +132,10 @@ class PenOverlay {
         this.canvas = document.getElementById('penov-canvas');
         this.canvas.style.position = 'absolute';
         this.canvas.style.top = 0;
+        // Load pen data if present
+        if (this.canvas.dataset?.penov) {
+            this.segmentArray = JSON.parse(this.canvas.dataset.penov);
+        }
         // Define the drawing step, depending on the required interpolation
         if (this.stepType == 'L') {
             this.drawStep = this.lineTo;
@@ -222,14 +226,34 @@ class PenOverlay {
     }
     /**
      * Draws from the current canvas position to the before last point
+     * 
+     * @param {integer} the total number of points
      */
-    draw() {
-        let nr = this.nrPoints()
+    draw(nr) {
         if (nr < 4) {
             this.lineTo(nr - 2);
         } else {
             // From this number of points on, we are free to use bezier curves
             this.drawStep(nr - 2);
+        }
+    }
+    renderPenData() {
+        for (let i = 0; i < this.segmentArray.length; i++) {
+            this.currSegment = i;
+            if (this.nrPoints() > 2) {
+                // render the current segment            
+                this.ctx.strokeStyle = this.segmentArray[this.currSegment].color;
+                this.ctx.lineWidth = this.segmentArray[this.currSegment].width;
+                // Set the initial point
+                let pos = this.pointPos(0)
+                this.ctx.moveTo(pos.x, pos.y);
+                // Continue to the before last point
+                for (let nr = 3; nr < this.segmentArray[this.currSegment].pts.length; nr++) {
+                    this.draw(nr);
+                }
+                // Join the before last point and the last by a line
+                this.lineTo(this.segmentArray[this.currSegment].pts.length - 1);
+            }
         }
     }
     replaceStoreButtons() {
@@ -256,6 +280,7 @@ class PenOverlay {
         this.canvas.width = this.main.clientWidth;
         this.canvas.height = this.main.clientHeight;
         this.ctx = this.canvas.getContext('2d');
+        this.renderPenData();
     }
     boundLoadH = this.loadH.bind(this);
     downH(event) {
@@ -279,7 +304,7 @@ class PenOverlay {
             let d2 = this.norm2(this.vector(lastPos, pos));
             if (d2 > this.minDist2) {
                 this.newPoint(pos);
-                this.draw();
+                this.draw(this.nrPoints());
             }
         }
     }
@@ -298,19 +323,19 @@ class PenOverlay {
         let data = JSON.stringify(this.segmentArray);
         this.canvas.setAttribute('data-penov', data);
         // Save the overlayed document as a hidden POST variable in JSON format
+        let hiddenDocument = document.createElement('input');
+        hiddenDocument.name = 'penov-document';
+        hiddenDocument.type = 'hidden';
+        hiddenDocument.value = this.parent.innerHTML;
+        // Add a second hidden POST with the original name of the store button
         let hidden = document.createElement('input');
-        hidden.name = 'penov-document';
+        hidden.name = 'penov-store';
         hidden.type = 'hidden';
-        hidden.value = JSON.stringify(this.parent.innerHTML);
-        // Add a second hidden POST with the original name
-        let hidden2 = document.createElement('input');
-        hidden2.name = 'penov-store';
-        hidden2.type = 'hidden';
-        hidden2.value = 'penov-store';
+        hidden.value = 'penov-store';
         // Submit the form
         let form = event.target.form;
+        form.appendChild(hiddenDocument);
         form.appendChild(hidden);
-        form.appendChild(hidden2);
         form.submit();
     }
     boundStoreH = this.storeH.bind(this);
