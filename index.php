@@ -4,6 +4,7 @@ class penOverlay {
         $html = '';
         $html .= '<head>';
         $html .= '<meta charset="UTF-8">';
+        $html .= '<link rel="stylesheet" href="index.css">';
         $html .= '<title>penOverlay</title>';
         $html .= '</head>';
         return $html;
@@ -43,7 +44,8 @@ class penOverlay {
         $wrapped .= '<div id="penov-raw">';
         $wrapped .= $html;
         $wrapped .= '</div>'; // penow-raw
-        $wrapped .= '<canvas id="penov-canvas" data-penov=""></canvas>';
+        $wrapped .= '<canvas id="penov-canvas" data-penovst="" data-penov=""></canvas>';
+        $wrapped .= '<div id="loadingIndicator" class="loadingIndicator"></div>';
         $wrapped .= '</div>'; // penov-main
         $wrapped .= '<!--/penOverlay-->';
         return $wrapped;
@@ -92,10 +94,11 @@ class penOverlay {
     }
     private function body():string {
         $html = '';
-        $html .= '<body>';
-        if (isset($_POST['load'])) {
+        if (isset($_POST['load'])) { 
+            $html .= '<body>';
             $html .= $this->correctionView();
         } elseif (isset($_POST['penov-store'])) {
+            $html .= '<body>';
             if (isset($_POST['penov-document'])) {
                 // Store the document
                 $path = 'testFiles/'.$_POST['file'];
@@ -107,6 +110,7 @@ class penOverlay {
                 $html.= $this->loadView();
             }
         } else {
+            $html .= '<body>';
             $html .= $this->loadView();
         }
         $html .= '</body>';
