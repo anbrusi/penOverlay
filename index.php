@@ -45,7 +45,7 @@ class penOverlay {
         $wrapped .= $html;
         $wrapped .= '</div>'; // penow-raw
         $wrapped .= '<canvas id="penov-canvas" data-penovst="" data-penov=""></canvas>';
-        $wrapped .= '<div id="loadingIndicator" class="loadingIndicator"></div>';
+        $wrapped .= '<div id="penov-loading" class="loadingIndicator"></div>';
         $wrapped .= '</div>'; // penov-main
         $wrapped .= '<!--/penOverlay-->';
         return $wrapped;
@@ -72,14 +72,15 @@ class penOverlay {
             $rawContent = file_get_contents('testFiles/'.$_POST['files']);
             if (strpos(trim($rawContent), '<!--penOverlay-->') === 0) {
                 $html .= $rawContent;
+                $params = array('parentid' => 'penov-parent');
             } else {
                 $html .= $this->wrap($rawContent);
+                $params = array('parentid' => 'penov-parent', 'rawStyles' => 'margin-left: 10px; margin-right: 50%; line-height: 2em; font-size: 200%');
             }
         }
         $html .= '</div>'; // penov-parent
 
         // Load PenOverlay. NOTE: did not work, if inserted after the form
-        $params = array('parentid' => 'penov-parent');
         $jsonParams = json_encode($params);
         $html .= '<script type="module">';
         $html .=    'import {attachPenOverlay} from "./isJS/modularJS/penOverlay.js";';
